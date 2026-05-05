@@ -43,6 +43,59 @@ router.get('/', async (req, res) => {
   }
 });
 
+// GET /api/expenses/stats/summary - Get expense statistics
+router.get('/stats/summary', async (req, res) => {
+  try {
+    const { period = 'today' } = req.query;
+    
+    // Calculate date range based on period
+    const now = new Date();
+    let startDate = new Date();
+    
+    if (period === 'today') {
+      startDate.setHours(0, 0, 0, 0);
+    } else if (period === 'week') {
+      startDate.setDate(now.getDate() - 7);
+      startDate.setHours(0, 0, 0, 0);
+    } else if (period === 'month') {
+      startDate.setMonth(now.getMonth() - 1);
+      startDate.setHours(0, 0, 0, 0);
+    }
+    
+    // Get expenses in date range
+    const expenses = await Expense.find({
+      expenseDate: { $gte: startDate, $lte: now }
+    });
+    
+    // Calculate total expenses
+    const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+    
+    // Calculate expenses by category
+    const categoryBreakdown = {
+      Ingredients: 0,
+      Packaging: 0,
+      Others: 0
+    };
+    
+    expenses.forEach(expense => {
+      categoryBreakdown[expense.category] += expense.amount;
+    });
+    
+    res.json({
+      period,
+      totalExpenses,
+      totalCount: expenses.length,
+      categoryBreakdown
+    });
+  } catch (error) {
+    console.error('Error fetching expense stats:', error);
+    res.status(500).json({ 
+      message: 'Failed to fetch expense statistics', 
+      error: error.message 
+    });
+  }
+});
+
 // GET /api/expenses/:id - Get single expense
 router.get('/:id', async (req, res) => {
   try {
@@ -174,57 +227,5 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-// GET /api/expenses/stats/summary - Get expense statistics
-router.get('/stats/summary', async (req, res) => {
-  try {
-    const { period = 'today' } = req.query;
-    
-    // Calculate date range based on period
-    const now = new Date();
-    let startDate = new Date();
-    
-    if (period === 'today') {
-      startDate.setHours(0, 0, 0, 0);
-    } else if (period === 'week') {
-      startDate.setDate(now.getDate() - 7);
-      startDate.setHours(0, 0, 0, 0);
-    } else if (period === 'month') {
-      startDate.setMonth(now.getMonth() - 1);
-      startDate.setHours(0, 0, 0, 0);
-    }
-    
-    // Get expenses in date range
-    const expenses = await Expense.find({
-      expenseDate: { $gte: startDate, $lte: now }
-    });
-    
-    // Calculate total expenses
-    const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
-    
-    // Calculate expenses by category
-    const categoryBreakdown = {
-      Ingredients: 0,
-      Packaging: 0,
-      Others: 0
-    };
-    
-    expenses.forEach(expense => {
-      categoryBreakdown[expense.category] += expense.amount;
-    });
-    
-    res.json({
-      period,
-      totalExpenses,
-      totalCount: expenses.length,
-      categoryBreakdown
-    });
-  } catch (error) {
-    console.error('Error fetching expense stats:', error);
-    res.status(500).json({ 
-      message: 'Failed to fetch expense statistics', 
-      error: error.message 
-    });
-  }
-});
 
 module.exports = router;

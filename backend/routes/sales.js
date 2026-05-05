@@ -42,6 +42,64 @@ router.get('/', async (req, res) => {
   }
 });
 
+// GET /api/sales/stats/summary - Get sales statistics
+router.get('/stats/summary', async (req, res) => {
+  try {
+    const { period = 'today' } = req.query;
+    
+    // Calculate date range based on period
+    const now = new Date();
+    let startDate = new Date();
+    
+    if (period === 'today') {
+      startDate.setHours(0, 0, 0, 0);
+    } else if (period === 'week') {
+      startDate.setDate(now.getDate() - 7);
+      startDate.setHours(0, 0, 0, 0);
+    } else if (period === 'month') {
+      startDate.setMonth(now.getMonth() - 1);
+      startDate.setHours(0, 0, 0, 0);
+    }
+    
+    // Get sales in date range
+    const sales = await Sale.find({
+      saleDate: { $gte: startDate, $lte: now }
+    });
+    
+    // Calculate total revenue
+    const totalRevenue = sales.reduce((sum, sale) => sum + sale.total, 0);
+    
+    // Calculate best-selling items
+    const itemStats = {};
+    sales.forEach(sale => {
+      sale.items.forEach(item => {
+        if (!itemStats[item.name]) {
+          itemStats[item.name] = { name: item.name, quantity: 0, revenue: 0 };
+        }
+        itemStats[item.name].quantity += item.quantity;
+        itemStats[item.name].revenue += item.subtotal;
+      });
+    });
+    
+    const bestSellers = Object.values(itemStats)
+      .sort((a, b) => b.quantity - a.quantity)
+      .slice(0, 5);
+    
+    res.json({
+      period,
+      totalRevenue,
+      totalSales: sales.length,
+      bestSellers
+    });
+  } catch (error) {
+    console.error('Error fetching sales stats:', error);
+    res.status(500).json({ 
+      message: 'Failed to fetch sales statistics', 
+      error: error.message 
+    });
+  }
+});
+
 // GET /api/sales/:id - Get single sale
 router.get('/:id', async (req, res) => {
   try {
@@ -185,62 +243,5 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-// GET /api/sales/stats/summary - Get sales statistics
-router.get('/stats/summary', async (req, res) => {
-  try {
-    const { period = 'today' } = req.query;
-    
-    // Calculate date range based on period
-    const now = new Date();
-    let startDate = new Date();
-    
-    if (period === 'today') {
-      startDate.setHours(0, 0, 0, 0);
-    } else if (period === 'week') {
-      startDate.setDate(now.getDate() - 7);
-      startDate.setHours(0, 0, 0, 0);
-    } else if (period === 'month') {
-      startDate.setMonth(now.getMonth() - 1);
-      startDate.setHours(0, 0, 0, 0);
-    }
-    
-    // Get sales in date range
-    const sales = await Sale.find({
-      saleDate: { $gte: startDate, $lte: now }
-    });
-    
-    // Calculate total revenue
-    const totalRevenue = sales.reduce((sum, sale) => sum + sale.total, 0);
-    
-    // Calculate best-selling items
-    const itemStats = {};
-    sales.forEach(sale => {
-      sale.items.forEach(item => {
-        if (!itemStats[item.name]) {
-          itemStats[item.name] = { name: item.name, quantity: 0, revenue: 0 };
-        }
-        itemStats[item.name].quantity += item.quantity;
-        itemStats[item.name].revenue += item.subtotal;
-      });
-    });
-    
-    const bestSellers = Object.values(itemStats)
-      .sort((a, b) => b.quantity - a.quantity)
-      .slice(0, 5);
-    
-    res.json({
-      period,
-      totalRevenue,
-      totalSales: sales.length,
-      bestSellers
-    });
-  } catch (error) {
-    console.error('Error fetching sales stats:', error);
-    res.status(500).json({ 
-      message: 'Failed to fetch sales statistics', 
-      error: error.message 
-    });
-  }
-});
 
 module.exports = router;

@@ -71,7 +71,7 @@ const Dashboard = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-xl text-gray-600">Loading dashboard...</div>
+        <div className="text-xl text-accent font-bold">Loading dashboard...</div>
       </div>
     );
   }
@@ -83,7 +83,7 @@ const Dashboard = () => {
     <div className="space-y-6">
       {/* Page Title and Period Selector */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-2xl font-bold text-gray-800">Dashboard</h2>
+        <h2 className="text-2xl font-bold text-black">Dashboard</h2>
         
         <div className="flex gap-2">
           <button
@@ -91,7 +91,7 @@ const Dashboard = () => {
             className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
               period === 'today'
                 ? 'bg-primary text-white'
-                : 'bg-white text-gray-700 border-2 border-accent hover:bg-accent hover:text-white'
+                : 'bg-white text-black border-2 border-accent hover:bg-accent hover:text-white'
             }`}
           >
             Today
@@ -101,7 +101,7 @@ const Dashboard = () => {
             className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
               period === 'week'
                 ? 'bg-primary text-white'
-                : 'bg-white text-gray-700 border-2 border-accent hover:bg-accent hover:text-white'
+                : 'bg-white text-black border-2 border-accent hover:bg-accent hover:text-white'
             }`}
           >
             Week
@@ -111,7 +111,7 @@ const Dashboard = () => {
             className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
               period === 'month'
                 ? 'bg-primary text-white'
-                : 'bg-white text-gray-700 border-2 border-accent hover:bg-accent hover:text-white'
+                : 'bg-white text-black border-2 border-accent hover:bg-accent hover:text-white'
             }`}
           >
             Month
@@ -122,67 +122,47 @@ const Dashboard = () => {
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Revenue Card */}
-        <div className="card bg-gradient-to-br from-primary to-secondary text-white">
-          <div className="text-sm font-semibold mb-2">Total Revenue</div>
-          <div className="text-3xl font-bold mb-1">
+        <div className="bg-primary border-4 border-secondary rounded-xl shadow-md p-4">
+          <div className="text-sm font-bold mb-2 text-white">Total Revenue</div>
+          <div className="text-4xl font-bold mb-1 text-white">
             ₱{salesStats?.totalRevenue.toFixed(2) || '0.00'}
           </div>
-          <div className="text-sm opacity-90">
+          <div className="text-base font-semibold text-white">
             {salesStats?.totalSales || 0} sales {getPeriodLabel().toLowerCase()}
           </div>
         </div>
 
         {/* Expenses Card */}
-        <div className="card bg-gradient-to-br from-accent to-secondary text-white">
-          <div className="text-sm font-semibold mb-2">Total Expenses</div>
-          <div className="text-3xl font-bold mb-1">
+        <div className="bg-accent border-4 border-primary rounded-xl shadow-md p-4">
+          <div className="text-sm font-bold mb-2 text-white">Total Expenses</div>
+          <div className="text-4xl font-bold mb-1 text-white">
             ₱{expenseStats?.totalExpenses.toFixed(2) || '0.00'}
           </div>
-          <div className="text-sm opacity-90">
+          <div className="text-base font-semibold text-white">
             {expenseStats?.totalCount || 0} expenses {getPeriodLabel().toLowerCase()}
           </div>
         </div>
 
         {/* Profit Card */}
-        <div className={`card text-white ${
+        <div className={`border-4 rounded-xl shadow-md p-4 ${
           profit >= 0 
-            ? 'bg-gradient-to-br from-green-500 to-green-600' 
-            : 'bg-gradient-to-br from-red-500 to-red-600'
+            ? 'bg-secondary border-primary' 
+            : 'bg-primary border-accent'
         }`}>
-          <div className="text-sm font-semibold mb-2">Net Profit</div>
-          <div className="text-3xl font-bold mb-1">
+          <div className="text-sm font-bold mb-2 text-white">Net Profit</div>
+          <div className="text-4xl font-bold mb-1 text-white">
             ₱{profit.toFixed(2)}
           </div>
-          <div className="text-sm opacity-90">
+          <div className="text-base font-semibold text-white">
             {profit >= 0 ? '📈 Profitable' : '📉 Loss'}
           </div>
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-2 gap-4">
-        <Link
-          to="/history"
-          className="card bg-gradient-to-br from-primary to-secondary text-white hover:opacity-90 transition-opacity text-center"
-        >
-          <div className="text-4xl mb-2">📋</div>
-          <div className="font-bold">View Sales History</div>
-          <div className="text-sm opacity-90 mt-1">All transactions</div>
-        </Link>
-        <Link
-          to="/expenses"
-          className="card bg-gradient-to-br from-accent to-secondary text-white hover:opacity-90 transition-opacity text-center"
-        >
-          <div className="text-4xl mb-2">💰</div>
-          <div className="font-bold">Manage Expenses</div>
-          <div className="text-sm opacity-90 mt-1">Track spending</div>
-        </Link>
-      </div>
-
       {/* Best Sellers */}
       {salesStats?.bestSellers && salesStats.bestSellers.length > 0 && (
         <div className="card">
-          <h3 className="text-lg font-bold mb-4 text-gray-800">
+          <h3 className="text-lg font-bold mb-4 text-black">
             Best Sellers ({getPeriodLabel()})
           </h3>
           <div className="space-y-3">
@@ -196,8 +176,8 @@ const Dashboard = () => {
                     {index + 1}
                   </div>
                   <div>
-                    <div className="font-semibold">{item.name}</div>
-                    <div className="text-sm text-gray-600">
+                    <div className="font-semibold text-black">{item.name}</div>
+                    <div className="text-sm text-accent">
                       {item.quantity} sold
                     </div>
                   </div>
@@ -206,7 +186,7 @@ const Dashboard = () => {
                   <div className="font-bold text-primary">
                     ₱{item.revenue.toFixed(2)}
                   </div>
-                  <div className="text-xs text-gray-600">revenue</div>
+                  <div className="text-xs text-accent">revenue</div>
                 </div>
               </div>
             ))}
@@ -217,7 +197,7 @@ const Dashboard = () => {
       {/* Expense Breakdown Chart */}
       {expenseChartData.length > 0 && (
         <div className="card">
-          <h3 className="text-lg font-bold mb-4 text-gray-800">
+          <h3 className="text-lg font-bold mb-4 text-black">
             Expense Breakdown ({getPeriodLabel()})
           </h3>
           <div className="h-64">
@@ -229,6 +209,7 @@ const Dashboard = () => {
                   cy="50%"
                   labelLine={false}
                   label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  labelStyle={{ fill: '#374151', fontWeight: 'bold', fontSize: '14px' }}
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"
@@ -245,21 +226,21 @@ const Dashboard = () => {
           
           {/* Category Details */}
           <div className="mt-4 grid grid-cols-3 gap-3">
-            <div className="text-center p-3 bg-background rounded-lg">
-              <div className="text-sm text-gray-600">Ingredients</div>
-              <div className="text-lg font-bold text-primary">
+            <div className="text-center p-3 bg-background rounded-lg border-2 border-primary">
+              <div className="text-sm text-black font-bold">Ingredients</div>
+              <div className="text-2xl font-bold text-primary">
                 ₱{expenseStats.categoryBreakdown.Ingredients.toFixed(2)}
               </div>
             </div>
-            <div className="text-center p-3 bg-background rounded-lg">
-              <div className="text-sm text-gray-600">Packaging</div>
-              <div className="text-lg font-bold text-secondary">
+            <div className="text-center p-3 bg-background rounded-lg border-2 border-secondary">
+              <div className="text-sm text-black font-bold">Packaging</div>
+              <div className="text-2xl font-bold text-secondary">
                 ₱{expenseStats.categoryBreakdown.Packaging.toFixed(2)}
               </div>
             </div>
-            <div className="text-center p-3 bg-background rounded-lg">
-              <div className="text-sm text-gray-600">Others</div>
-              <div className="text-lg font-bold text-accent">
+            <div className="text-center p-3 bg-background rounded-lg border-2 border-accent">
+              <div className="text-sm text-black font-bold">Others</div>
+              <div className="text-2xl font-bold text-accent">
                 ₱{expenseStats.categoryBreakdown.Others.toFixed(2)}
               </div>
             </div>
@@ -271,8 +252,8 @@ const Dashboard = () => {
       {salesStats?.totalSales === 0 && expenseStats?.totalCount === 0 && (
         <div className="card text-center py-12">
           <div className="text-6xl mb-4">📊</div>
-          <h3 className="text-xl font-bold text-gray-800 mb-2">No Data Yet</h3>
-          <p className="text-gray-600">
+          <h3 className="text-xl font-bold text-black mb-2">No Data Yet</h3>
+          <p className="text-accent">
             Start recording sales and expenses to see your dashboard analytics.
           </p>
         </div>
