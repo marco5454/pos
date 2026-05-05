@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Layout from './components/Layout';
 import POS from './pages/POS';
 import Expenses from './pages/Expenses';
+import SalesHistory from './pages/SalesHistory';
 import Dashboard from './pages/Dashboard';
 import Settings from './pages/Settings';
 
@@ -21,6 +22,7 @@ function App() {
           {/* Main application routes */}
           <Route path="pos" element={<POS />} />
           <Route path="expenses" element={<Expenses />} />
+          <Route path="history" element={<SalesHistory />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="settings" element={<Settings />} />
           

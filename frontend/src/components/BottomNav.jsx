@@ -21,6 +21,11 @@ const BottomNav = () => {
       icon: '💰',
     },
     {
+      path: '/history',
+      label: 'History',
+      icon: '📋',
+    },
+    {
       path: '/dashboard',
       label: 'Dashboard',
       icon: '📊',

@@ -65,7 +65,7 @@ router.get('/:id', async (req, res) => {
 // POST /api/sales - Create new sale
 router.post('/', async (req, res) => {
   try {
-    const { items } = req.body;
+    const { items, saleDate } = req.body;
     
     // Validate items array
     if (!items || !Array.isArray(items) || items.length === 0) {
@@ -107,7 +107,7 @@ router.post('/', async (req, res) => {
     const sale = new Sale({
       items: enrichedItems,
       total: total,
-      saleDate: new Date()
+      saleDate: saleDate ? new Date(saleDate) : new Date()
     });
     
     const savedSale = await sale.save();
@@ -116,6 +116,48 @@ router.post('/', async (req, res) => {
     console.error('Error creating sale:', error);
     res.status(500).json({ 
       message: 'Failed to create sale', 
+      error: error.message 
+    });
+  }
+});
+
+// PUT /api/sales/:id - Update sale (for date corrections)
+router.put('/:id', async (req, res) => {
+  try {
+    const { saleDate } = req.body;
+    
+    // Validate sale date
+    if (!saleDate) {
+      return res.status(400).json({ 
+        message: 'Sale date is required' 
+      });
+    }
+    
+    const newDate = new Date(saleDate);
+    const now = new Date();
+    
+    // Prevent future dates
+    if (newDate > now) {
+      return res.status(400).json({ 
+        message: 'Sale date cannot be in the future' 
+      });
+    }
+    
+    const updatedSale = await Sale.findByIdAndUpdate(
+      req.params.id,
+      { saleDate: newDate },
+      { new: true, runValidators: true }
+    ).populate('items.menuItemId', 'name price');
+    
+    if (!updatedSale) {
+      return res.status(404).json({ message: 'Sale not found' });
+    }
+    
+    res.json(updatedSale);
+  } catch (error) {
+    console.error('Error updating sale:', error);
+    res.status(500).json({ 
+      message: 'Failed to update sale', 
       error: error.message 
     });
   }

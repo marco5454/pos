@@ -78,6 +78,9 @@ export const salesAPI = {
   // Create new sale
   create: (data) => api.post('/sales', data),
   
+  // Update sale (for date corrections)
+  update: (id, data) => api.put(`/sales/${id}`, data),
+  
   // Delete sale
   delete: (id) => api.delete(`/sales/${id}`),
   

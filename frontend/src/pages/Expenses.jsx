@@ -9,11 +9,19 @@ import { expensesAPI } from '../utils/api';
 const Expenses = () => {
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     amount: '',
     category: 'Ingredients',
     expenseDate: new Date().toISOString().split('T')[0],
+    notes: ''
+  });
+  const [editFormData, setEditFormData] = useState({
+    name: '',
+    amount: '',
+    category: 'Ingredients',
+    expenseDate: '',
     notes: ''
   });
 
@@ -42,6 +50,61 @@ const Expenses = () => {
       ...prev,
       [name]: value
     }));
+  };
+
+  // Handle edit form input changes
+  const handleEditInputChange = (e) => {
+    const { name, value } = e.target;
+    setEditFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Start editing an expense
+  const startEditing = (expense) => {
+    setEditingId(expense._id);
+    setEditFormData({
+      name: expense.name,
+      amount: expense.amount.toString(),
+      category: expense.category,
+      expenseDate: new Date(expense.expenseDate).toISOString().split('T')[0],
+      notes: expense.notes || ''
+    });
+  };
+
+  // Cancel editing
+  const cancelEditing = () => {
+    setEditingId(null);
+    setEditFormData({
+      name: '',
+      amount: '',
+      category: 'Ingredients',
+      expenseDate: '',
+      notes: ''
+    });
+  };
+
+  // Save edited expense
+  const saveEdit = async (id) => {
+    if (!editFormData.name.trim() || !editFormData.amount || parseFloat(editFormData.amount) <= 0) {
+      alert('Please provide valid expense name and amount.');
+      return;
+    }
+
+    try {
+      await expensesAPI.update(id, {
+        ...editFormData,
+        amount: parseFloat(editFormData.amount)
+      });
+      
+      setEditingId(null);
+      fetchExpenses();
+      alert('Expense updated successfully! ✅');
+    } catch (err) {
+      console.error('Error updating expense:', err);
+      alert('Failed to update expense. Please try again.');
+    }
   };
 
   // Submit new expense
@@ -245,34 +308,132 @@ const Expenses = () => {
                 className="bg-background p-4 rounded-lg border-l-4"
                 style={{ borderLeftColor: getCategoryColor(expense.category).replace('bg-', '#') }}
               >
-                <div className="flex justify-between items-start mb-2">
-                  <div className="flex-1">
-                    <div className="font-bold text-lg">{expense.name}</div>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className={`${getCategoryColor(expense.category)} text-white text-xs px-2 py-1 rounded`}>
-                        {expense.category}
-                      </span>
-                      <span className="text-sm text-gray-600">
-                        {formatDate(expense.expenseDate)}
-                      </span>
+                {editingId === expense._id ? (
+                  // Edit Mode
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-semibold mb-1 text-gray-700">
+                        Expense Name
+                      </label>
+                      <input
+                        type="text"
+                        name="name"
+                        value={editFormData.name}
+                        onChange={handleEditInputChange}
+                        className="input-field"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-sm font-semibold mb-1 text-gray-700">
+                          Amount (₱)
+                        </label>
+                        <input
+                          type="number"
+                          name="amount"
+                          value={editFormData.amount}
+                          onChange={handleEditInputChange}
+                          className="input-field"
+                          step="0.01"
+                          min="0"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold mb-1 text-gray-700">
+                          Category
+                        </label>
+                        <select
+                          name="category"
+                          value={editFormData.category}
+                          onChange={handleEditInputChange}
+                          className="input-field"
+                        >
+                          <option value="Ingredients">Ingredients</option>
+                          <option value="Packaging">Packaging</option>
+                          <option value="Others">Others</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold mb-1 text-gray-700">
+                        Date
+                      </label>
+                      <input
+                        type="date"
+                        name="expenseDate"
+                        value={editFormData.expenseDate}
+                        onChange={handleEditInputChange}
+                        className="input-field"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold mb-1 text-gray-700">
+                        Notes
+                      </label>
+                      <textarea
+                        name="notes"
+                        value={editFormData.notes}
+                        onChange={handleEditInputChange}
+                        className="input-field"
+                        rows="2"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => saveEdit(expense._id)}
+                        className="btn-primary flex-1"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={cancelEditing}
+                        className="btn-secondary flex-1"
+                      >
+                        Cancel
+                      </button>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-xl font-bold text-primary">
-                      ₱{expense.amount.toFixed(2)}
+                ) : (
+                  // View Mode
+                  <>
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex-1">
+                        <div className="font-bold text-lg">{expense.name}</div>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className={`${getCategoryColor(expense.category)} text-white text-xs px-2 py-1 rounded`}>
+                            {expense.category}
+                          </span>
+                          <span className="text-sm text-gray-600">
+                            {formatDate(expense.expenseDate)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-xl font-bold text-primary">
+                          ₱{expense.amount.toFixed(2)}
+                        </div>
+                        <div className="flex gap-2 mt-1">
+                          <button
+                            onClick={() => startEditing(expense)}
+                            className="text-sm text-secondary hover:text-primary font-semibold"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDelete(expense._id, expense.name)}
+                            className="text-sm text-red-500 hover:text-red-700 font-semibold"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                    <button
-                      onClick={() => handleDelete(expense._id, expense.name)}
-                      className="text-sm text-red-500 hover:text-red-700 mt-1"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-                {expense.notes && (
-                  <div className="text-sm text-gray-600 mt-2 italic">
-                    {expense.notes}
-                  </div>
+                    {expense.notes && (
+                      <div className="text-sm text-gray-600 mt-2 italic">
+                        {expense.notes}
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             ))}

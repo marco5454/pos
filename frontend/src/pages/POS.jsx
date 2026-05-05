@@ -12,6 +12,7 @@ const POS = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
+  const [saleDate, setSaleDate] = useState(new Date().toISOString().split('T')[0]);
 
   // Fetch menu items on component mount
   useEffect(() => {
@@ -82,10 +83,22 @@ const POS = () => {
       return;
     }
 
+    // Validate sale date is not in the future
+    const selectedDate = new Date(saleDate);
+    const now = new Date();
+    if (selectedDate > now) {
+      alert('Sale date cannot be in the future.');
+      return;
+    }
+
     try {
-      await salesAPI.create({ items: cart });
+      await salesAPI.create({ 
+        items: cart,
+        saleDate: saleDate 
+      });
       setSuccessMessage('Sale completed successfully! 🎉');
       setCart([]);
+      setSaleDate(new Date().toISOString().split('T')[0]); // Reset to current date
       
       // Clear success message after 3 seconds
       setTimeout(() => setSuccessMessage(''), 3000);
@@ -160,6 +173,26 @@ const POS = () => {
             ))}
           </div>
         )}
+      </div>
+
+      {/* Sale Date Picker */}
+      <div className="card">
+        <h3 className="text-lg font-bold mb-4 text-gray-800">Sale Date</h3>
+        <div className="flex items-center gap-3">
+          <label className="text-sm font-semibold text-gray-700">
+            Date:
+          </label>
+          <input
+            type="date"
+            value={saleDate}
+            onChange={(e) => setSaleDate(e.target.value)}
+            max={new Date().toISOString().split('T')[0]}
+            className="input-field flex-1"
+          />
+        </div>
+        <p className="text-xs text-gray-600 mt-2">
+          💡 Select a past date for late entries. Future dates are not allowed.
+        </p>
       </div>
 
       {/* Cart */}

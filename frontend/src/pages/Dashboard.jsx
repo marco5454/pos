@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { salesAPI, expensesAPI } from '../utils/api';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
@@ -156,6 +157,26 @@ const Dashboard = () => {
             {profit >= 0 ? '📈 Profitable' : '📉 Loss'}
           </div>
         </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-2 gap-4">
+        <Link
+          to="/history"
+          className="card bg-gradient-to-br from-primary to-secondary text-white hover:opacity-90 transition-opacity text-center"
+        >
+          <div className="text-4xl mb-2">📋</div>
+          <div className="font-bold">View Sales History</div>
+          <div className="text-sm opacity-90 mt-1">All transactions</div>
+        </Link>
+        <Link
+          to="/expenses"
+          className="card bg-gradient-to-br from-accent to-secondary text-white hover:opacity-90 transition-opacity text-center"
+        >
+          <div className="text-4xl mb-2">💰</div>
+          <div className="font-bold">Manage Expenses</div>
+          <div className="text-sm opacity-90 mt-1">Track spending</div>
+        </Link>
       </div>
 
       {/* Best Sellers */}
