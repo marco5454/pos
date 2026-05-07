@@ -192,15 +192,15 @@ const SalesHistory = () => {
 
       {/* Summary Card */}
       {sales.length > 0 && (
-        <div className="card bg-primary text-white shadow-lg">
+        <div className="card bg-primary text-gray-600 shadow-lg">
           <div className="flex justify-between items-center">
             <div>
-              <div className="text-sm font-bold mb-1" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>Total Sales</div>
-              <div className="text-3xl font-bold" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.3)' }}>₱{calculateTotal().toFixed(2)}</div>
+              <div className="text-sm font-bold mb-1">Total Sales</div>
+              <div className="text-3xl font-bold">₱{calculateTotal().toFixed(2)}</div>
             </div>
             <div className="text-right">
-              <div className="text-sm font-bold mb-1" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>Transactions</div>
-              <div className="text-3xl font-bold" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.3)' }}>{sales.length}</div>
+              <div className="text-sm font-bold mb-1">Transactions</div>
+              <div className="text-3xl font-bold">{sales.length}</div>
             </div>
           </div>
         </div>

@@ -122,38 +122,38 @@ const Dashboard = () => {
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Revenue Card */}
-        <div className="bg-primary border-4 border-secondary rounded-xl shadow-md p-4">
-          <div className="text-sm font-bold mb-2 text-white">Total Revenue</div>
-          <div className="text-4xl font-bold mb-1 text-white">
+        <div className="bg-primary border-4 border-secondary rounded-xl shadow-md p-5">
+          <div className="text-base font-bold mb-3 text-white drop-shadow-md">Total Revenue</div>
+          <div className="text-5xl font-bold mb-3 text-white drop-shadow-lg">
             ₱{salesStats?.totalRevenue.toFixed(2) || '0.00'}
           </div>
-          <div className="text-base font-semibold text-white">
+          <div className="text-lg font-bold text-white drop-shadow-md">
             {salesStats?.totalSales || 0} sales {getPeriodLabel().toLowerCase()}
           </div>
         </div>
 
         {/* Expenses Card */}
-        <div className="bg-accent border-4 border-primary rounded-xl shadow-md p-4">
-          <div className="text-sm font-bold mb-2 text-white">Total Expenses</div>
-          <div className="text-4xl font-bold mb-1 text-white">
+        <div className="bg-accent border-4 border-primary rounded-xl shadow-md p-5">
+          <div className="text-base font-bold mb-3 text-white drop-shadow-md">Total Expenses</div>
+          <div className="text-5xl font-bold mb-3 text-white drop-shadow-lg">
             ₱{expenseStats?.totalExpenses.toFixed(2) || '0.00'}
           </div>
-          <div className="text-base font-semibold text-white">
+          <div className="text-lg font-bold text-white drop-shadow-md">
             {expenseStats?.totalCount || 0} expenses {getPeriodLabel().toLowerCase()}
           </div>
         </div>
 
         {/* Profit Card */}
-        <div className={`border-4 rounded-xl shadow-md p-4 ${
+        <div className={`border-4 rounded-xl shadow-md p-5 ${
           profit >= 0 
             ? 'bg-secondary border-primary' 
             : 'bg-primary border-accent'
         }`}>
-          <div className="text-sm font-bold mb-2 text-white">Net Profit</div>
-          <div className="text-4xl font-bold mb-1 text-white">
+          <div className="text-base font-bold mb-3 text-white drop-shadow-md">Net Profit</div>
+          <div className="text-5xl font-bold mb-3 text-white drop-shadow-lg">
             ₱{profit.toFixed(2)}
           </div>
-          <div className="text-base font-semibold text-white">
+          <div className="text-lg font-bold text-white drop-shadow-md">
             {profit >= 0 ? '📈 Profitable' : '📉 Loss'}
           </div>
         </div>
