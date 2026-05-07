@@ -26,7 +26,33 @@ These rules apply to **every modification** in this project:
 - MongoDB Atlas account
 - npm or yarn
 
-### Backend Setup
+### Easy Setup (Ubuntu/Linux)
+
+**One-command installation and startup:**
+
+```bash
+# Install all dependencies
+./install.sh
+
+# Start both backend and frontend
+./start.sh
+```
+
+That's it! The script will:
+- ✅ Start backend server on port 5000
+- ✅ Start frontend server on port 5173
+- ✅ Display colored status messages
+- ✅ Save logs to `backend.log` and `frontend.log`
+- ✅ Handle graceful shutdown with Ctrl+C
+
+**Stop servers:**
+```bash
+./stop.sh
+```
+
+### Manual Setup (Alternative)
+
+#### Backend Setup
 
 ```bash
 cd backend
@@ -44,7 +70,7 @@ Start backend:
 npm run dev
 ```
 
-### Frontend Setup
+#### Frontend Setup
 
 ```bash
 cd frontend
