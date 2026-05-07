@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { menuItemsAPI } from '../utils/api';
+import { menuItemsAPI, settingsAPI } from '../utils/api';
 
 /**
  * Settings Page Component
  * Menu management - Add, edit, delete ice crumble variants
- * Features: Menu item CRUD, inline editing, price management
+ * Starting capital configuration for cash balance tracking
+ * Features: Menu item CRUD, inline editing, price management, starting capital
  */
 const Settings = () => {
   const [menuItems, setMenuItems] = useState([]);
@@ -18,11 +19,25 @@ const Settings = () => {
     name: '',
     price: ''
   });
+  const [startingCapital, setStartingCapital] = useState('');
+  const [savedCapital, setSavedCapital] = useState(0);
+  const [savingCapital, setSavingCapital] = useState(false);
 
-  // Fetch menu items on component mount
+  // Fetch menu items and settings on component mount
   useEffect(() => {
     fetchMenuItems();
+    fetchSettings();
   }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const response = await settingsAPI.get();
+      setSavedCapital(response.data.startingCapital || 0);
+      setStartingCapital(response.data.startingCapital?.toString() || '');
+    } catch (err) {
+      console.error('Error fetching settings:', err);
+    }
+  };
 
   const fetchMenuItems = async () => {
     try {
@@ -140,10 +155,74 @@ const Settings = () => {
     }
   };
 
+  const handleSaveCapital = async (e) => {
+    e.preventDefault();
+    
+    if (!startingCapital || parseFloat(startingCapital) < 0) {
+      alert('Please provide a valid starting capital amount.');
+      return;
+    }
+
+    try {
+      setSavingCapital(true);
+      await settingsAPI.update({
+        startingCapital: parseFloat(startingCapital)
+      });
+      
+      setSavedCapital(parseFloat(startingCapital));
+      alert('Starting capital saved successfully! ✅');
+    } catch (err) {
+      console.error('Error saving starting capital:', err);
+      alert('Failed to save starting capital. Please try again.');
+    } finally {
+      setSavingCapital(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Page Title */}
       <h2 className="text-2xl font-bold text-gray-800">Settings</h2>
+
+      {/* Starting Capital Configuration */}
+      <div className="card bg-gradient-to-br from-secondary to-primary border-4 border-accent">
+        <h3 className="text-lg font-bold mb-4 text-black drop-shadow-md">💰 Starting Capital</h3>
+        <p className="text-sm mb-4 text-black font-semibold">
+          Set your initial business capital to track your total cash balance over time.
+        </p>
+        
+        {savedCapital > 0 && (
+          <div className="bg-white rounded-lg p-3 mb-4 border-2 border-accent">
+            <div className="text-sm font-semibold mb-1 text-black">Current Starting Capital</div>
+            <div className="text-3xl font-bold text-accent">₱{savedCapital.toFixed(2)}</div>
+          </div>
+        )}
+        
+        <form onSubmit={handleSaveCapital} className="space-y-3">
+          <div>
+            <label className="block text-sm font-semibold mb-2 text-black">
+              {savedCapital > 0 ? 'Update Starting Capital (₱)' : 'Enter Starting Capital (₱)'}
+            </label>
+            <input
+              type="number"
+              value={startingCapital}
+              onChange={(e) => setStartingCapital(e.target.value)}
+              placeholder="0.00"
+              step="0.01"
+              min="0"
+              className="input-field text-gray-800"
+              required
+            />
+          </div>
+          <button 
+            type="submit" 
+            className="btn-secondary w-full bg-white text-primary hover:bg-background font-bold"
+            disabled={savingCapital}
+          >
+            {savingCapital ? 'Saving...' : (savedCapital > 0 ? 'Update Capital' : 'Save Capital')}
+          </button>
+        </form>
+      </div>
 
       {/* Add New Menu Item */}
       <div className="card">

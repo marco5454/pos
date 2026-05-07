@@ -19,11 +19,13 @@ app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 const menuItemsRoutes = require('./routes/menuItems');
 const salesRoutes = require('./routes/sales');
 const expensesRoutes = require('./routes/expenses');
+const settingsRoutes = require('./routes/settings');
 
 // API Routes
 app.use('/api/menu-items', menuItemsRoutes);
 app.use('/api/sales', salesRoutes);
 app.use('/api/expenses', expensesRoutes);
+app.use('/api/settings', settingsRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -43,6 +45,7 @@ app.get('/', (req, res) => {
       menuItems: '/api/menu-items',
       sales: '/api/sales',
       expenses: '/api/expenses',
+      settings: '/api/settings',
       health: '/api/health'
     }
   });

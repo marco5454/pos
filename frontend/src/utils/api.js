@@ -109,6 +109,15 @@ export const expensesAPI = {
   getStats: (period = 'today') => api.get('/expenses/stats/summary', { params: { period } }),
 };
 
+// Settings API
+export const settingsAPI = {
+  // Get current settings
+  get: () => api.get('/settings'),
+  
+  // Update settings
+  update: (data) => api.put('/settings', data),
+};
+
 // Health check
 export const healthCheck = () => api.get('/health');
 

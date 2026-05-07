@@ -50,22 +50,29 @@ router.get('/stats/summary', async (req, res) => {
     
     // Calculate date range based on period
     const now = new Date();
-    let startDate = new Date();
+    let query = {};
     
-    if (period === 'today') {
-      startDate.setHours(0, 0, 0, 0);
-    } else if (period === 'week') {
-      startDate.setDate(now.getDate() - 7);
-      startDate.setHours(0, 0, 0, 0);
-    } else if (period === 'month') {
-      startDate.setMonth(now.getMonth() - 1);
-      startDate.setHours(0, 0, 0, 0);
+    if (period === 'all') {
+      // No date filter for all-time stats
+      query = {};
+    } else {
+      let startDate = new Date();
+      
+      if (period === 'today') {
+        startDate.setHours(0, 0, 0, 0);
+      } else if (period === 'week') {
+        startDate.setDate(now.getDate() - 7);
+        startDate.setHours(0, 0, 0, 0);
+      } else if (period === 'month') {
+        startDate.setMonth(now.getMonth() - 1);
+        startDate.setHours(0, 0, 0, 0);
+      }
+      
+      query = { expenseDate: { $gte: startDate, $lte: now } };
     }
     
     // Get expenses in date range
-    const expenses = await Expense.find({
-      expenseDate: { $gte: startDate, $lte: now }
-    });
+    const expenses = await Expense.find(query);
     
     // Calculate total expenses
     const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);

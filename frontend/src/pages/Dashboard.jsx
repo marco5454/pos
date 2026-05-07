@@ -1,23 +1,50 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { salesAPI, expensesAPI } from '../utils/api';
+import { salesAPI, expensesAPI, settingsAPI } from '../utils/api';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
 /**
  * Dashboard Page Component
- * Analytics and insights for revenue, expenses, and profit
- * Features: Period toggle, statistics cards, expense breakdown chart
+ * Analytics and insights for revenue, expenses, profit, and cash balance
+ * Features: Period toggle, statistics cards, expense breakdown chart, current balance tracking
  */
 const Dashboard = () => {
   const [period, setPeriod] = useState('today');
   const [salesStats, setSalesStats] = useState(null);
   const [expenseStats, setExpenseStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [startingCapital, setStartingCapital] = useState(0);
+  const [allTimeSales, setAllTimeSales] = useState(0);
+  const [allTimeExpenses, setAllTimeExpenses] = useState(0);
 
   // Fetch statistics when period changes
   useEffect(() => {
     fetchStats();
+    fetchAllTimeStats();
+    fetchSettings();
   }, [period]);
+
+  const fetchSettings = async () => {
+    try {
+      const response = await settingsAPI.get();
+      setStartingCapital(response.data.startingCapital || 0);
+    } catch (err) {
+      console.error('Error fetching settings:', err);
+    }
+  };
+
+  const fetchAllTimeStats = async () => {
+    try {
+      const [salesResponse, expensesResponse] = await Promise.all([
+        salesAPI.getStats('all'),
+        expensesAPI.getStats('all')
+      ]);
+      setAllTimeSales(salesResponse.data.totalRevenue || 0);
+      setAllTimeExpenses(expensesResponse.data.totalExpenses || 0);
+    } catch (err) {
+      console.error('Error fetching all-time statistics:', err);
+    }
+  };
 
   const fetchStats = async () => {
     try {
@@ -78,6 +105,7 @@ const Dashboard = () => {
 
   const profit = calculateProfit();
   const expenseChartData = getExpenseChartData();
+  const currentBalance = startingCapital + allTimeSales - allTimeExpenses;
 
   return (
     <div className="space-y-6">
@@ -85,10 +113,10 @@ const Dashboard = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-bold text-black">Dashboard</h2>
         
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <button
             onClick={() => setPeriod('today')}
-            className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+            className={`px-3 py-2 rounded-lg font-semibold transition-colors text-sm ${
               period === 'today'
                 ? 'bg-primary text-white'
                 : 'bg-white text-black border-2 border-accent hover:bg-accent hover:text-white'
@@ -98,7 +126,7 @@ const Dashboard = () => {
           </button>
           <button
             onClick={() => setPeriod('week')}
-            className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+            className={`px-3 py-2 rounded-lg font-semibold transition-colors text-sm ${
               period === 'week'
                 ? 'bg-primary text-white'
                 : 'bg-white text-black border-2 border-accent hover:bg-accent hover:text-white'
@@ -108,7 +136,7 @@ const Dashboard = () => {
           </button>
           <button
             onClick={() => setPeriod('month')}
-            className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+            className={`px-3 py-2 rounded-lg font-semibold transition-colors text-sm ${
               period === 'month'
                 ? 'bg-primary text-white'
                 : 'bg-white text-black border-2 border-accent hover:bg-accent hover:text-white'
@@ -116,7 +144,59 @@ const Dashboard = () => {
           >
             Month
           </button>
+          <button
+            onClick={() => setPeriod('all')}
+            className={`px-3 py-2 rounded-lg font-semibold transition-colors text-sm ${
+              period === 'all'
+                ? 'bg-primary text-white'
+                : 'bg-white text-black border-2 border-accent hover:bg-accent hover:text-white'
+            }`}
+          >
+            All Time
+          </button>
         </div>
+      </div>
+
+      {/* Current Cash Balance Card - Always Visible */}
+      <div className="card bg-gradient-to-br from-secondary to-primary border-4 border-accent shadow-xl">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-bold text-black drop-shadow-md">💰 Current Cash Balance</h3>
+          <Link 
+            to="/settings" 
+            className="text-xs bg-white hover:bg-background px-3 py-1 rounded-lg transition-colors font-semibold text-black"
+          >
+            Set Capital
+          </Link>
+        </div>
+        
+        <div className="text-6xl font-bold mb-4 text-black drop-shadow-lg">
+          ₱{currentBalance.toFixed(2)}
+        </div>
+        
+        <div className="bg-white rounded-lg p-4 space-y-2 text-sm border-2 border-accent">
+          <div className="flex justify-between items-center">
+            <span className="font-semibold text-black">Starting Capital:</span>
+            <span className="font-bold text-black">₱{startingCapital.toFixed(2)}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="font-semibold text-black">Total Sales (All Time):</span>
+            <span className="font-bold text-secondary">+₱{allTimeSales.toFixed(2)}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="font-semibold text-black">Total Expenses (All Time):</span>
+            <span className="font-bold text-primary">-₱{allTimeExpenses.toFixed(2)}</span>
+          </div>
+          <div className="border-t-2 border-accent pt-2 mt-2 flex justify-between items-center">
+            <span className="font-bold text-base text-black">Available Balance:</span>
+            <span className="font-bold text-2xl text-accent">₱{currentBalance.toFixed(2)}</span>
+          </div>
+        </div>
+        
+        {startingCapital === 0 && (
+          <div className="mt-4 bg-white rounded-lg p-3 text-sm border-2 border-accent">
+            <p className="font-semibold text-black">⚠️ Set your starting capital in Settings to track your balance accurately.</p>
+          </div>
+        )}
       </div>
 
       {/* Statistics Cards */}
