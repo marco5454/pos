@@ -4,7 +4,7 @@ import { menuItemsAPI, salesAPI } from '../utils/api';
 /**
  * POS Page Component
  * Point of Sale interface for processing ice crumble sales
- * Features: Menu grid, cart management, order processing
+ * Features: Menu grid, cart management, order processing with custom pricing
  */
 const POS = () => {
   const [menuItems, setMenuItems] = useState([]);
@@ -13,6 +13,7 @@ const POS = () => {
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
   const [saleDate, setSaleDate] = useState(new Date().toISOString().split('T')[0]);
+  const [editingItemId, setEditingItemId] = useState(null);
 
   // Fetch menu items on component mount
   useEffect(() => {
@@ -48,7 +49,9 @@ const POS = () => {
         menuItemId: menuItem._id,
         name: menuItem.name,
         price: menuItem.price,
-        quantity: 1
+        originalPrice: menuItem.price, // Store original price for reference
+        quantity: 1,
+        customNote: '' // For tracking customizations
       }]);
     }
   };
@@ -66,9 +69,47 @@ const POS = () => {
     }
   };
 
+  // Update item price (for custom pricing)
+  const updatePrice = (menuItemId, newPrice) => {
+    const price = parseFloat(newPrice);
+    if (isNaN(price) || price < 0) return;
+    
+    setCart(cart.map(item =>
+      item.menuItemId === menuItemId
+        ? { ...item, price: price }
+        : item
+    ));
+  };
+
+  // Update item custom note
+  const updateCustomNote = (menuItemId, note) => {
+    setCart(cart.map(item =>
+      item.menuItemId === menuItemId
+        ? { ...item, customNote: note }
+        : item
+    ));
+  };
+
+  // Toggle edit mode for an item
+  const toggleEditMode = (menuItemId) => {
+    setEditingItemId(editingItemId === menuItemId ? null : menuItemId);
+  };
+
+  // Reset item to original price
+  const resetToOriginalPrice = (menuItemId) => {
+    setCart(cart.map(item =>
+      item.menuItemId === menuItemId
+        ? { ...item, price: item.originalPrice, customNote: '' }
+        : item
+    ));
+  };
+
   // Remove item from cart
   const removeFromCart = (menuItemId) => {
     setCart(cart.filter(item => item.menuItemId !== menuItemId));
+    if (editingItemId === menuItemId) {
+      setEditingItemId(null);
+    }
   };
 
   // Calculate cart total
@@ -92,12 +133,21 @@ const POS = () => {
     }
 
     try {
+      // Prepare items with custom notes in the name if applicable
+      const itemsToSend = cart.map(item => ({
+        menuItemId: item.menuItemId,
+        name: item.customNote ? `${item.name} (${item.customNote})` : item.name,
+        price: item.price,
+        quantity: item.quantity
+      }));
+
       await salesAPI.create({ 
-        items: cart,
+        items: itemsToSend,
         saleDate: saleDate 
       });
       setSuccessMessage('Sale completed successfully! 🎉');
       setCart([]);
+      setEditingItemId(null);
       setSaleDate(new Date().toISOString().split('T')[0]); // Reset to current date
       
       // Clear success message after 3 seconds
@@ -112,19 +162,20 @@ const POS = () => {
   const clearCart = () => {
     if (cart.length > 0 && confirm('Clear all items from cart?')) {
       setCart([]);
+      setEditingItemId(null);
     }
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-xl text-gray-600">Loading menu...</div>
+        <div className="text-xl text-gray-600" style={{ fontFamily: 'Verdana, sans-serif' }}>Loading menu...</div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" style={{ fontFamily: 'Verdana, sans-serif' }}>
       {/* Page Title */}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-800">Point of Sale</h2>
@@ -208,37 +259,105 @@ const POS = () => {
             {cart.map((item) => (
               <div
                 key={item.menuItemId}
-                className="flex items-center justify-between bg-background p-3 rounded-lg"
+                className="bg-background p-3 rounded-lg border-2 border-transparent hover:border-accent transition-colors"
               >
-                <div className="flex-1">
-                  <div className="font-semibold">{item.name}</div>
-                  <div className="text-sm text-gray-600">₱{item.price.toFixed(2)} each</div>
-                </div>
-                
-                <div className="flex items-center gap-3">
+                {/* Item Header */}
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex-1">
+                    <div className="font-semibold text-lg">{item.name}</div>
+                    {item.customNote && (
+                      <div className="text-xs text-accent mt-1">
+                        📝 {item.customNote}
+                      </div>
+                    )}
+                    {item.price !== item.originalPrice && (
+                      <div className="text-xs text-gray-500 line-through">
+                        Original: ₱{item.originalPrice.toFixed(2)}
+                      </div>
+                    )}
+                  </div>
+                  
                   <button
-                    onClick={() => updateQuantity(item.menuItemId, item.quantity - 1)}
-                    className="w-8 h-8 bg-accent text-white rounded-full hover:bg-primary transition-colors"
+                    onClick={() => toggleEditMode(item.menuItemId)}
+                    className="text-sm px-3 py-1 bg-accent text-white rounded hover:bg-primary transition-colors"
                   >
-                    −
-                  </button>
-                  <span className="w-8 text-center font-bold">{item.quantity}</span>
-                  <button
-                    onClick={() => updateQuantity(item.menuItemId, item.quantity + 1)}
-                    className="w-8 h-8 bg-accent text-white rounded-full hover:bg-primary transition-colors"
-                  >
-                    +
-                  </button>
-                  <button
-                    onClick={() => removeFromCart(item.menuItemId)}
-                    className="ml-2 text-red-500 hover:text-red-700 font-bold"
-                  >
-                    ✕
+                    {editingItemId === item.menuItemId ? 'Done' : 'Edit'}
                   </button>
                 </div>
-                
-                <div className="ml-4 font-bold text-lg">
-                  ₱{(item.price * item.quantity).toFixed(2)}
+
+                {/* Edit Mode */}
+                {editingItemId === item.menuItemId && (
+                  <div className="mb-3 p-3 bg-white rounded border border-accent space-y-2">
+                    <div>
+                      <label className="text-xs font-semibold text-gray-700 block mb-1">
+                        Custom Price (₱):
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={item.price}
+                        onChange={(e) => updatePrice(item.menuItemId, e.target.value)}
+                        className="input-field w-full text-sm"
+                        placeholder="Enter custom price"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="text-xs font-semibold text-gray-700 block mb-1">
+                        Customization Note:
+                      </label>
+                      <input
+                        type="text"
+                        value={item.customNote}
+                        onChange={(e) => updateCustomNote(item.menuItemId, e.target.value)}
+                        className="input-field w-full text-sm"
+                        placeholder="e.g., no toppings, extra syrup"
+                      />
+                    </div>
+
+                    {item.price !== item.originalPrice && (
+                      <button
+                        onClick={() => resetToOriginalPrice(item.menuItemId)}
+                        className="text-xs text-secondary hover:text-primary underline"
+                      >
+                        Reset to original price
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* Quantity Controls and Price */}
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-gray-600">
+                    ₱{item.price.toFixed(2)} each
+                  </div>
+                  
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => updateQuantity(item.menuItemId, item.quantity - 1)}
+                      className="w-8 h-8 bg-accent text-white rounded-full hover:bg-primary transition-colors"
+                    >
+                      −
+                    </button>
+                    <span className="w-8 text-center font-bold">{item.quantity}</span>
+                    <button
+                      onClick={() => updateQuantity(item.menuItemId, item.quantity + 1)}
+                      className="w-8 h-8 bg-accent text-white rounded-full hover:bg-primary transition-colors"
+                    >
+                      +
+                    </button>
+                    <button
+                      onClick={() => removeFromCart(item.menuItemId)}
+                      className="ml-2 text-red-500 hover:text-red-700 font-bold"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  
+                  <div className="font-bold text-lg">
+                    ₱{(item.price * item.quantity).toFixed(2)}
+                  </div>
                 </div>
               </div>
             ))}
